@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pucopoint_manager/model/pucoreads.dart';
@@ -17,21 +18,35 @@ class shopkeeperImage extends StatefulWidget {
 // ignore: camel_case_types
 class _shopkeeperImageState extends State<shopkeeperImage> {
   TextEditingController userInput = TextEditingController();
-
+  String shopkeeperNetworkImage = "";
+  bool change = false;
   String text = "";
   late File? imageFile = null;
 
   bool isloading = false;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // FocusScope.of(context).unfocus();
+  }
+
   /// Widget
   @override
   Widget build(BuildContext context) {
+    print("see here :${widget.pucopoint.name}");
+    if (widget.pucopoint.shopkeeperImageUrl != "" && !change) {
+      shopkeeperNetworkImage = widget.pucopoint.shopkeeperImageUrl;
+    }
+    ;
+
     return Scaffold(
         appBar: AppBar(
           title: Text("Shopkeeper Image"),
         ),
         body: Container(
-            child: imageFile == null
+            child: imageFile == null && shopkeeperNetworkImage == ""
                 ? Container(
                     alignment: Alignment.center,
                     child: Stack(
@@ -58,6 +73,9 @@ class _shopkeeperImageState extends State<shopkeeperImage> {
                               ),
                             ),
                           ),
+                        ),
+                        Center(
+                          child: Text("upload shopkeeper image"),
                         ),
                         Positioned(
                           top: 350,
@@ -99,9 +117,13 @@ class _shopkeeperImageState extends State<shopkeeperImage> {
                                 child: !isloading
                                     ? SizedBox(
                                         height: 300,
-                                        child: Image.file(
-                                          imageFile!,
-                                        ),
+                                        child: shopkeeperNetworkImage == ""
+                                            ? Image.file(
+                                                imageFile!,
+                                              )
+                                            : Image.network(
+                                                shopkeeperNetworkImage,
+                                              ),
                                       )
                                     : const SizedBox(
                                         child: CircularProgressIndicator()),
@@ -190,6 +212,8 @@ class _shopkeeperImageState extends State<shopkeeperImage> {
     );
     if (pickedFile != null) {
       setState(() {
+        change = true;
+        shopkeeperNetworkImage = "";
         imageFile = File(pickedFile.path);
       });
     }
@@ -204,6 +228,8 @@ class _shopkeeperImageState extends State<shopkeeperImage> {
     );
     if (pickedFile != null) {
       setState(() {
+        change = true;
+        shopkeeperNetworkImage = "";
         imageFile = File(pickedFile.path);
       });
     }
@@ -234,27 +260,38 @@ class _shopkeeperImageState extends State<shopkeeperImage> {
       ),
       onTap: () async {
         Pucopoint pucopoint = widget.pucopoint;
-        
+        var id = pucopoint.imagefileId;
+
         setState(() {
           isloading = true;
         });
-        var id = pucopoint.imagefileId;
-        var uploadimage =
-            await UploadImageFile().uploadFile(imageFile, id, "shopkeeper");
+        
+        var uploadimage = "";
+        if (shopkeeperNetworkImage == "") {
+          uploadimage =
+              await UploadImageFile().uploadFile(imageFile, id, "shopkeeper");
+        }
+
+        print("upload image: $uploadimage");
 
         if (uploadimage != "error") {
-          pucopoint.shopkeeperImageUrl = uploadimage;
+          pucopoint.shopkeeperImageUrl = shopkeeperNetworkImage == ""
+              ? uploadimage
+              : shopkeeperNetworkImage;
           // print(pucopoint.shopkeeperImageUrl);
           setState(() {
             isloading = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('successfully uploaded'),
-            ),
-          );
 
-          Get.to(shopImage(pucopoint:pucopoint));
+          if (shopkeeperNetworkImage == "") {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('successfully uploaded'),
+              ),
+            );
+          }
+
+          Get.to(shopImage(pucopoint: pucopoint));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

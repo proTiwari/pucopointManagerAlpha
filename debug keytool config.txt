@@ -1,0 +1,32 @@
+Microsoft Windows [Version 10.0.22000.376]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\prosh>cd C:\Program Files\Java\jre1.8.0_311\bin
+
+C:\Program Files\Java\jre1.8.0_311\bin>keytool -list -v -keystore C:\Users\prosh\AndroidStudioProjects\pucoreads\debug.keystore.jks -alias debugkey -storepass pucoreadsdebug -keypass pucoreadsdebug
+Alias name: debugkey
+Creation date: Dec 19, 2021
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=Shubham singh, OU=pucoreads, O=pucosa, L=allahabad, ST=up, C=91
+Issuer: CN=Shubham singh, OU=pucoreads, O=pucosa, L=allahabad, ST=up, C=91
+Serial number: 8b413da
+Valid from: Sun Dec 19 12:22:47 IST 2021 until: Thu Dec 13 12:22:47 IST 2046
+Certificate fingerprints:
+         SHA1: 05:74:AA:1D:26:BA:04:16:C2:87:59:C5:A2:E3:D1:FB:3D:12:54:E1
+         SHA256: 3E:CB:B6:89:8C:1B:A5:24:4C:26:57:88:5F:D3:71:8E:BA:82:CB:5A:4E:BC:9E:A5:B5:D5:F5:2A:20:AA:59:59
+Signature algorithm name: SHA256withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 91 80 04 55 7C 0D 33 7A   5A 65 10 71 BF CF 42 6C  ...U..3zZe.q..Bl
+0010: CC C9 29 86                                        ..).
+]
+]
+

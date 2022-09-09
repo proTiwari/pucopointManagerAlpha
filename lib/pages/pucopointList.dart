@@ -1,12 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Notification;
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 import 'package:pucopoint_manager/login/login.dart';
 import 'package:pucopoint_manager/model/pucoreads.dart';
 import 'package:pucopoint_manager/pages/googleMap.dart';
 import 'package:pucopoint_manager/pages/shopkeeper.dart';
+import 'package:pucopoint_manager/pages/notification.dart';
 import 'package:pucopoint_manager/pages/shopkeeperCompleteInfo/shopkeeperDetail.dart';
 
 import '../utils/getpucopoints.dart';
@@ -20,9 +22,9 @@ class PucopointList extends StatefulWidget {
 
 class _PucopointListState extends State<PucopointList> {
   int pageIndex = 0;
-
+  bool googlemaptab = false;
   @override
-  void didChangeDependencies() {
+  didChangeDependencies() {
     getPucopoints();
     super.didChangeDependencies();
   }
@@ -37,6 +39,7 @@ class _PucopointListState extends State<PucopointList> {
 
   @override
   void initState() {
+    googlemaptab = false;
     pageIndex = 0;
     controller.addListener((_onSearchChange));
     super.initState();
@@ -75,6 +78,7 @@ class _PucopointListState extends State<PucopointList> {
 
   @override
   Widget build(BuildContext context) {
+    // googlemaptab = false;
     return WillPopScope(
       onWillPop: () async => false,
       child: new Scaffold(
@@ -83,84 +87,121 @@ class _PucopointListState extends State<PucopointList> {
           actions: [
             IconButton(
               onPressed: () {
-                Get.to(Googlemap(liss: lis));
+                googlemaptab = true;
+                setState(() {
+                  googlemaptab = true;
+                });
+
+                Future.delayed(const Duration(seconds: 5)).then((value) => {
+                      Future.delayed(const Duration(seconds: 1))
+                          .then((value) => setState(() {
+                                googlemaptab = false;
+                              })),
+                      Get.to(Googlemap(liss: lis)),
+                    });
               },
-              icon: Icon(Icons.gps_fixed),
+              icon: const Icon(Icons.gps_fixed),
             ),
             IconButton(
               onPressed: () {
                 _logout();
               },
-              icon: Icon(Icons.logout),
+              icon: const Icon(Icons.logout),
             ),
           ],
           elevation: 0.0,
         ),
-        body: new Column(
-          children: <Widget>[
-            new Container(
-              color: Theme.of(context).primaryColor,
-              child: new Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: new Card(
-                  child: new ListTile(
-                    leading: new Icon(Icons.search),
-                    title: new TextField(
-                      controller: controller,
-                      decoration: new InputDecoration(
-                          hintText: 'Search', border: InputBorder.none),
-                      // onChanged: onSearchTextChanged,
-                    ),
-                    trailing: new IconButton(
-                      icon: const Icon(Icons.cancel),
-                      onPressed: () {
-                        controller.clear();
-                      },
-                    ),
-                  ),
+        body: googlemaptab
+            ? WillPopScope(
+                onWillPop: () async => false,
+                child: Center(
+                  child: SizedBox(
+                      height: 200.0,
+                      width: 200.0,
+                      child: LottieBuilder.asset(
+                          'assets/animassets/animation.json')),
                 ),
-              ),
-            ),
-            Expanded(
-                child: ListView.builder(
-                  // scrollDirection: Axis.horizontal,
-                    itemCount: lis.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        child: GestureDetector(
-                          onTap: () => {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      ShopkeeperCompleteInfo(lis: lis[index])),
-                            )
-                          },
-                          child: ListTile(
-                            leading: new CircleAvatar(
-                              radius: 29,
-                              backgroundImage: new NetworkImage(
-                                  lis[index]['shopkeeperImageUrl']),
-                            ),
-                            title: new Text(lis[index]['name'] +
-                                '\n' +
-                                lis[index]['email'] +
-                                '\n' +
-                                lis[index]['phone'] +
-                                '\n' +
-                                lis[index]['streetAddress']),
+              )
+            : new Column(
+                children: <Widget>[
+                  new Container(
+                    color: Theme.of(context).primaryColor,
+                    child: new Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: new Card(
+                        child: new ListTile(
+                          leading: const Icon(Icons.search),
+                          title: new TextField(
+                            controller: controller,
+                            decoration: const InputDecoration(
+                                hintText: 'Search', border: InputBorder.none),
+                            // onChanged: onSearchTextChanged,
+                          ),
+                          trailing: IconButton(
+                            icon: controller.text != "" ?const Icon(Icons.cancel) : Container(),
+                            onPressed: () {
+                              
+                              controller.clear();
+                            },
                           ),
                         ),
-                        elevation: 8,
-                        margin: EdgeInsets.all(10),
-                        shape: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(color: Colors.white)),
-                      );
-                    })
+                      ),
                     ),
-          ],
-        ),
+                  ),
+                  lis.isEmpty
+                      ? SingleChildScrollView(
+                        child: Center(
+                            child: SizedBox(
+                              height: 200,
+                              child: Container(
+                                  height: 160.0,
+                                  width: 160.0,
+                                  child: LottieBuilder.asset(
+                                      'assets/animassets/loading.json')),
+                            ),
+                          ),
+                      )
+                      : Expanded(
+                          child: ListView.builder(
+                              // scrollDirection: Axis.horizontal,
+                              itemCount: lis.length,
+                              itemBuilder: (context, index) {
+                                return Card(
+                                  child: GestureDetector(
+                                    onTap: () => {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ShopkeeperCompleteInfo(
+                                                    lis: lis[index])),
+                                      )
+                                    },
+                                    child: ListTile(
+                                      leading: new CircleAvatar(
+                                        radius: 29,
+                                        backgroundImage: new NetworkImage(
+                                            lis[index]['shopkeeperImageUrl']),
+                                      ),
+                                      title: new Text(lis[index]['name'] +
+                                          '\n' +
+                                          lis[index]['email'] +
+                                          '\n' +
+                                          lis[index]['phone'] +
+                                          '\n' +
+                                          lis[index]['streetAddress']),
+                                    ),
+                                  ),
+                                  elevation: 8,
+                                  margin: EdgeInsets.all(10),
+                                  shape: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide:
+                                          BorderSide(color: Colors.white)),
+                                );
+                              })),
+                ],
+              ),
         bottomNavigationBar: bottomNav(),
       ),
     );
@@ -274,7 +315,8 @@ class _PucopointListState extends State<PucopointList> {
           ),
           IconButton(
             enableFeedback: false,
-            onPressed: () {
+            onPressed: () async {
+              Get.to(Notification());
               setState(() {
                 pageIndex = 2;
               });

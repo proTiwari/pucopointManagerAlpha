@@ -178,7 +178,6 @@ class _agreementState extends State<agreement> {
           if (urlDownload != null &&
               pucopoint.aadhar != "" &&
               pucopoint.aadharImageUrl != "" &&
-              pucopoint.altPhone != "" &&
               pucopoint.city != "" &&
               pucopoint.country != "" &&
               pucopoint.email != "" &&
@@ -228,7 +227,9 @@ class _agreementState extends State<agreement> {
             setState(() {
               isloading = false;
             });
-            Get.to(PucopointList());
+            Future.delayed(Duration(seconds: 0)).then((value) => Navigator.of(context)
+        .pushReplacement(MaterialPageRoute(builder: (context) => const PucopointList())));
+            
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -242,7 +243,8 @@ class _agreementState extends State<agreement> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('signature is not done or agreement is not checked'),
+              content:
+                  Text('signature is not done or agreement is not checked'),
             ),
           );
         }

@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pucopoint_manager/model/pucoreads.dart';
 import 'package:pucopoint_manager/pages/aadhaarCardImage.dart';
+import 'package:pucopoint_manager/pages/shopkeeperImage.dart';
 import 'package:pucopoint_manager/utils/uploadimage.dart';
-
 
 class shopImage extends StatefulWidget {
   final Pucopoint pucopoint;
@@ -20,6 +20,9 @@ class _shopImageState extends State<shopImage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController userInput = TextEditingController();
   String text = "";
+  String shopNetworkImage = "";
+  bool change = false;
+
   late File? imageFile = null;
   String shopname = "";
 
@@ -28,13 +31,19 @@ class _shopImageState extends State<shopImage> {
   /// Widget
   @override
   Widget build(BuildContext context) {
+    if (widget.pucopoint.shopImageUrl != "" && !change) {
+      shopNetworkImage = widget.pucopoint.shopImageUrl;
+      userInput.text = widget.pucopoint.shopName;
+    }
+    ;
+
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text("Shop Image"),
         ),
         body: Container(
-            child: imageFile == null
+            child: imageFile == null && shopNetworkImage == ""
                 ? Container(
                     alignment: Alignment.center,
                     child: Stack(
@@ -61,6 +70,9 @@ class _shopImageState extends State<shopImage> {
                               ),
                             ),
                           ),
+                        ),
+                        Center(
+                          child: Text("upload shop image"),
                         ),
                         Positioned(
                           top: 350,
@@ -102,9 +114,13 @@ class _shopImageState extends State<shopImage> {
                                 child: !isloading
                                     ? SizedBox(
                                         height: 300,
-                                        child: Image.file(
-                                          imageFile!,
-                                        ),
+                                        child: shopNetworkImage == ""
+                                            ? Image.file(
+                                                imageFile!,
+                                              )
+                                            : Image.network(
+                                                shopNetworkImage,
+                                              ),
                                       )
                                     : SizedBox(
                                         child: CircularProgressIndicator()),
@@ -139,6 +155,7 @@ class _shopImageState extends State<shopImage> {
                                       }
                                       return null;
                                     },
+                                    onChanged: (value) => widget.pucopoint.shopName = value,
                                     keyboardType: TextInputType.text,
                                   ),
                                 ),
@@ -225,6 +242,8 @@ class _shopImageState extends State<shopImage> {
     );
     if (pickedFile != null) {
       setState(() {
+        change = true;
+        shopNetworkImage = "";
         imageFile = File(pickedFile.path);
       });
     }
@@ -239,6 +258,8 @@ class _shopImageState extends State<shopImage> {
     );
     if (pickedFile != null) {
       setState(() {
+        change = true;
+        shopNetworkImage = "";
         imageFile = File(pickedFile.path);
       });
     }
@@ -275,22 +296,31 @@ class _shopImageState extends State<shopImage> {
           setState(() {
             isloading = true;
           });
-          var uploadimage =
-              await UploadImageFile().uploadFile(imageFile, id, "shop");
+          
+          var uploadimage = "";
+          if (shopNetworkImage == "") {
+            uploadimage =
+                await UploadImageFile().uploadFile(imageFile, id, "shop");
+          }
+          print("upload shop image: $uploadimage");
+
           if (uploadimage != "error") {
-            pucopoint.shopImageUrl = uploadimage;
+            pucopoint.shopImageUrl =
+                shopNetworkImage == "" ? uploadimage : shopNetworkImage;
             pucopoint.shopName = shopname;
 
             setState(() {
               isloading = false;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('successfully uploaded'),
-              ),
-            );
+            if (shopNetworkImage == "") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('successfully uploaded'),
+                ),
+              );
+            }
 
-            Get.to(aadhaarCardImage(pucopoint:pucopoint));
+            Get.to(aadhaarCardImage(pucopoint: pucopoint));
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(

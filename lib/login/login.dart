@@ -185,7 +185,7 @@ class _LoginComponentState extends State<LoginComponent> {
         width: MediaQuery.of(context).size.width - 60,
         height: 70,
         decoration: BoxDecoration(
-          color: Colors.orange,
+          color: Colors.amber,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(

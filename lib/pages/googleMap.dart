@@ -22,23 +22,38 @@ class Googlemap extends ConsumerStatefulWidget {
 class _GooglemapState extends ConsumerState<Googlemap> {
   Completer<GoogleMapController> _controller = Completer();
   Set<Circle> _circles = Set<Circle>();
-  Set<Circle> _circles2 = Set<Circle>();
+  final Set<Circle> _circles2 = <Circle>{};
   Set<Marker> _markers = Set<Marker>();
   bool cardList = false;
   bool cir = false;
   bool cis = false;
   bool cin = false;
   bool searchToggle = false;
-  bool radiusSlider = false;
+  bool radiusSlider = true;
   int markerIdCounter = 1;
+  var lat = 25.435801;
+  var long = 81.846313;
   var radiusValue = 3000.0;
   var tappedPoint;
   Timer? _debounce;
   TextEditingController searchController = TextEditingController();
-  static final CameraPosition _kGooglePlex = CameraPosition(
+  static late CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(25.435801, 81.846313),
     zoom: 14.4746,
   );
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.liss != [] && widget.liss.length > 1) {
+      lat = double.parse(widget.liss[0]["lat"]) ?? 25.435801;
+      long = double.parse(widget.liss[0]["long"]) ?? 81.846313;
+      _kGooglePlex = CameraPosition(
+        target: LatLng(lat, long),
+        zoom: 12.4746,
+      );
+    }
+  }
 
   bool isReviews = true;
 
@@ -58,7 +73,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
 
   final GoogleMapController? controller = null;
 
-  void _setCircle(LatLng point, dynamic n) async {
+  void _setCircle(LatLng point, dynamic n, {double? radius}) async {
     if (cir == false) {
       controller?.animateCamera(CameraUpdate.newCameraPosition(
           CameraPosition(target: point, zoom: 12)));
@@ -67,7 +82,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
             circleId: CircleId("$n"),
             center: point,
             fillColor: Colors.blue.withOpacity(0.1),
-            radius: radiusValue,
+            radius: radius ?? radiusValue,
             strokeColor: Colors.blue,
             strokeWidth: 1));
 
@@ -77,7 +92,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
     }
   }
 
-  void _sCircle(LatLng point, dynamic n) async {
+  void _sCircle(LatLng point, dynamic n, {double? radius}) async {
     if (cir == true) {
       controller?.animateCamera(CameraUpdate.newCameraPosition(
           CameraPosition(target: point, zoom: 12)));
@@ -86,7 +101,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
             circleId: CircleId("$n"),
             center: point,
             fillColor: Colors.blue.withOpacity(0.1),
-            radius: radiusValue,
+            radius: radius ?? radiusValue,
             strokeColor: Colors.blue,
             strokeWidth: 1));
 
@@ -100,7 +115,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-
+    var changeId = 0;
     final allSearchResults = ref.watch(placeResultsProvider);
     final searchFlag = ref.watch(searchToggleProvider);
     List lst = [];
@@ -133,8 +148,8 @@ class _GooglemapState extends ConsumerState<Googlemap> {
                   onTap: (point) {
                     tappedPoint = point;
                     var n = Random();
-                    radiusSlider = cir;
-                    _sCircle(point, n.nextInt(100));
+                    // radiusSlider = cir;
+                    _sCircle(point, n.nextInt(1000));
                   },
                 ),
               ),
@@ -194,7 +209,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
                     )
                   : Container(),
               searchFlag.searchToggle
-                  ? allSearchResults.allReturnedResults.length != 0
+                  ? allSearchResults.allReturnedResults.isNotEmpty
                       ? Positioned(
                           top: 100.0,
                           left: 15.0,
@@ -260,16 +275,65 @@ class _GooglemapState extends ConsumerState<Googlemap> {
                             children: [
                               Expanded(
                                   child: Slider(
-                                      max: 7000.0,
-                                      min: 1000.0,
-                                      value: radiusValue,
-                                      onChanged: (newVal) {
-                                        radiusValue = newVal;
-                                        // pressedNear = false;
-                                        _circles.clear;
+                                max: 7000.0,
+                                min: 1000.0,
+                                value: radiusValue,
+                                onChangeEnd: (newVal) {
+                                  // radiusValue = newVal;
+                                  // pressedNear = false;
+                                  // _circles.clear;
+                                  var n = Random();
+                                  changeId = changeId + 1;
 
-                                        _sCircle(tappedPoint, 9);
-                                      })),
+                                  if (!cir) {
+                                    
+                                    for (var i in _circles) {
+                                      if (i.center == tappedPoint) {
+                                        // i.radius  = newVal;
+                                        // i.radius = newVal;
+                                        setState(() {
+                                          _circles2.clear();
+                                          i.radius = newVal;
+                                          i.copyWith(radiusParam: newVal);
+                                        });
+                                      }
+                                    }
+                                    _setCircle(tappedPoint, changeId,
+                                        radius: newVal);
+                                  }
+
+                                  for (var i in _circles2) {
+                                    if (i.center == tappedPoint) {
+                                      // i.radius  = newVal;
+                                      // i.radius = newVal;
+                                      setState(() {
+                                        i.radius = newVal;
+                                        i.copyWith(radiusParam: newVal);
+                                      });
+                                    }
+                                  }
+                                  _sCircle(tappedPoint, changeId,
+                                      radius: newVal);
+                                },
+                                onChanged: (value) {
+                                  
+                                  if (!cir) {
+                                    
+                                    setState(() {
+                                      _circles2.clear();
+                                      radiusValue = value;
+                                    });
+
+                                    _setCircle(tappedPoint, 7);
+                                  }
+                                  // _circles2.clear;
+                                  setState(() {
+                                    radiusValue = value;
+                                  });
+
+                                  _sCircle(tappedPoint, 7);
+                                },
+                              )),
                               Text("${radiusValue.toInt()} m")
                             ],
                           )))
@@ -313,7 +377,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
                     cardList = !cardList;
                     searchToggle = true;
                     radiusSlider = false;
-                    
+
                     // pressedNear = false;
                     // cardTapped = false;
                     // getDirections = false;
@@ -339,7 +403,7 @@ class _GooglemapState extends ConsumerState<Googlemap> {
                     radiusValue = 3000;
                     cir = !cir;
                     searchToggle = false;
-                    radiusSlider = !cir;
+                    radiusSlider = true;
                     // pressedNear = false;
                     // cardTapped = false;
                     // getDirections = true;

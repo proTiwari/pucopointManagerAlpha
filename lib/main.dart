@@ -14,6 +14,7 @@ import 'package:lottie/lottie.dart';
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
   GestureBinding.instance.resamplingEnabled = true;
   // await FirebaseAppCheck.instance.activate(
   //   webRecaptchaSiteKey: '6Lf9TlkhAAAAAGmUZbsApCDxoELkfoFlICiy-8Ty',
@@ -29,15 +30,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return GetMaterialApp(
       title: 'Registration Form',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          
-          visualDensity: VisualDensity.adaptivePlatformDensity),
+        primaryColor: Colors.amber,
+        appBarTheme: AppBarTheme(
+          color: Colors.amber,
+        ),
+       
+      ),
+      // theme: ThemeData(
+      //   accentColor: Colors.red,
+      //     brightness: Brightness.light,
+      //     primaryColor: Colors.amber,
+      //     visualDensity: VisualDensity.adaptivePlatformDensity),
       initialRoute: '/',
       routes: {
+        '/pucopointList': (context) => PucopointList(),
         '/shopkeeper': (context) => Shopkeeper(),
       },
       supportedLocales: [

@@ -11,9 +11,9 @@ class _agreementDocumentState extends State<agreementDocument> {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Flutter Demo',
+      title: '',
       theme: new ThemeData(
-        primarySwatch: Colors.deepPurple,
+        primarySwatch: Colors.amber,
       ),
       debugShowCheckedModeBanner: false,
       home: new MyHomePage(title: 'Agreement'),

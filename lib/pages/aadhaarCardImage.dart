@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pucopoint_manager/model/pucoreads.dart';
@@ -18,22 +19,35 @@ class aadhaarCardImage extends StatefulWidget {
 
 class _aadhaarCardImageState extends State<aadhaarCardImage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
+  String aadharNetworkImage = "";
+  bool change = false;
   bool isloading = false;
   TextEditingController userInput = TextEditingController();
   String aadhaarnumber = "";
   late File? imageFile = null;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // FocusScope.of(context).unfocus();
+  }
+
   /// Widget
   @override
   Widget build(BuildContext context) {
+    if (widget.pucopoint.aadharImageUrl != "" && !change) {
+      aadharNetworkImage = widget.pucopoint.aadharImageUrl;
+      userInput.text = widget.pucopoint.aadhar;
+    }
+    ;
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text("Aadhaar Image"),
         ),
         body: Container(
-            child: imageFile == null
+            child: imageFile == null && aadharNetworkImage == ""
                 ? Container(
                     alignment: Alignment.center,
                     child: Stack(
@@ -60,6 +74,9 @@ class _aadhaarCardImageState extends State<aadhaarCardImage> {
                               ),
                             ),
                           ),
+                        ),
+                        Center(
+                          child: Text("upload aadhaar image"),
                         ),
                         Positioned(
                           top: 350,
@@ -101,9 +118,13 @@ class _aadhaarCardImageState extends State<aadhaarCardImage> {
                                 child: !isloading
                                     ? SizedBox(
                                         height: 300,
-                                        child: Image.file(
-                                          imageFile!,
-                                        ),
+                                        child: aadharNetworkImage == ""
+                                            ? Image.file(
+                                                imageFile!,
+                                              )
+                                            : Image.network(
+                                                aadharNetworkImage,
+                                              ),
                                       )
                                     : SizedBox(
                                         child: CircularProgressIndicator()),
@@ -116,6 +137,7 @@ class _aadhaarCardImageState extends State<aadhaarCardImage> {
                                 child: Form(
                                   key: _formKey,
                                   child: TextFormField(
+                                    controller: userInput,
                                     decoration: InputDecoration(
                                       contentPadding:
                                           const EdgeInsets.symmetric(
@@ -140,7 +162,8 @@ class _aadhaarCardImageState extends State<aadhaarCardImage> {
                                       }
                                       return null;
                                     },
-                                    keyboardType: TextInputType.text,
+                                    onChanged: (value) => widget.pucopoint.aadhar = value,
+                                    keyboardType: TextInputType.number,
                                   ),
                                 ),
                               ),
@@ -226,6 +249,8 @@ class _aadhaarCardImageState extends State<aadhaarCardImage> {
     );
     if (pickedFile != null) {
       setState(() {
+        change = true;
+        aadharNetworkImage = "";
         imageFile = File(pickedFile.path);
       });
     }
@@ -240,6 +265,8 @@ class _aadhaarCardImageState extends State<aadhaarCardImage> {
     );
     if (pickedFile != null) {
       setState(() {
+        change = true;
+        aadharNetworkImage = "";
         imageFile = File(pickedFile.path);
       });
     }
@@ -275,21 +302,28 @@ class _aadhaarCardImageState extends State<aadhaarCardImage> {
           setState(() {
             isloading = true;
           });
-          var uploadimage =
-              await UploadImageFile().uploadFile(imageFile, id, "shop");
 
+          var uploadimage = "";
+          if (aadharNetworkImage == "") {
+            uploadimage =
+                await UploadImageFile().uploadFile(imageFile, id, "aadhaar");
+          }
           if (uploadimage != "error") {
-            pucopoint.aadharImageUrl = uploadimage;
+            pucopoint.aadharImageUrl =
+                aadharNetworkImage == "" ? uploadimage : aadharNetworkImage;
             pucopoint.aadhar = aadhaarnumber;
-            print(pucopoint.shopImageUrl);
+
             setState(() {
               isloading = false;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('successfully uploaded'),
-              ),
-            );
+
+            if (aadharNetworkImage == "") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('successfully uploaded'),
+                ),
+              );
+            }
 
             Get.to(agreement(pucopoint: pucopoint));
           } else {

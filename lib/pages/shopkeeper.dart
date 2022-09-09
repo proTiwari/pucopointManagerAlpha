@@ -1,9 +1,11 @@
 import 'package:csc_picker/csc_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_geohash/dart_geohash.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:pucopoint_manager/model/pucoreads.dart';
+import 'package:pucopoint_manager/pages/pucopointList.dart';
 import 'package:pucopoint_manager/pages/shopkeeperImage.dart';
 import 'package:pucopoint_manager/utils/location.dart';
 import 'package:uuid/uuid.dart';
@@ -48,12 +50,20 @@ class _ShopkeeperState extends State<Shopkeeper> {
   double latitude = 0.00;
   double longitude = 0.00;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    //  FocusScope.of(context).unfocus();
+  }
+
 //  get context => context;
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        return true;
+        _registeration();
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -538,7 +548,7 @@ class _ShopkeeperState extends State<Shopkeeper> {
                 width: MediaQuery.of(context).size.width - 60,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: Colors.orange,
+                  color: Colors.amber,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -624,5 +634,37 @@ class _ShopkeeperState extends State<Shopkeeper> {
             )
           ],
         ));
+  }
+
+  Future<void> _registeration() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('Are you sure you want to discard registration?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () {
+                Get.to(PucopointList());
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
